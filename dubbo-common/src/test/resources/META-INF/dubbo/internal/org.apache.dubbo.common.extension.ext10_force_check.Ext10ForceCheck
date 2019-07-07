@@ -1,0 +1,2 @@
+forceCheck=org.apache.dubbo.common.extension.ext10_force_check.Ext10ForceCheckImpl1
+forceCheck=org.apache.dubbo.common.extension.ext10_force_check.Ext10ForceCheckImpl2

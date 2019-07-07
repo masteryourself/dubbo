@@ -101,6 +101,8 @@ public class ExtensionLoader<T> {
 
     private Map<String, IllegalStateException> exceptions = new ConcurrentHashMap<>();
 
+    private boolean forceCheck = false;
+
     private ExtensionLoader(Class<?> type) {
         this.type = type;
         objectFactory = (type == ExtensionFactory.class ? null : ExtensionLoader.getExtensionLoader(ExtensionFactory.class).getAdaptiveExtension());
@@ -639,6 +641,10 @@ public class ExtensionLoader<T> {
         loadDirectory(extensionClasses, DUBBO_DIRECTORY, type.getName().replace("org.apache", "com.alibaba"));
         loadDirectory(extensionClasses, SERVICES_DIRECTORY, type.getName());
         loadDirectory(extensionClasses, SERVICES_DIRECTORY, type.getName().replace("org.apache", "com.alibaba"));
+        if (exceptions.size() > 0) {
+            exceptions.forEach((k, v) -> logger.warn(v.getMessage()));
+            exceptions.forEach((k, v) -> System.out.println(v.getMessage()));
+        }
         return extensionClasses;
     }
 
@@ -679,6 +685,9 @@ public class ExtensionLoader<T> {
                 }
             }
         } catch (Throwable t) {
+            if (t instanceof DubboForceCheckException && forceCheck) {
+                throw (DubboForceCheckException) t;
+            }
             logger.error("Exception occurred when loading extension class (interface: " +
                     type + ", description file: " + fileName + ").", t);
         }
@@ -706,6 +715,9 @@ public class ExtensionLoader<T> {
                                 loadClass(extensionClasses, resourceURL, Class.forName(line, true, classLoader), name);
                             }
                         } catch (Throwable t) {
+                            if (t instanceof DubboForceCheckException && forceCheck) {
+                                throw (DubboForceCheckException) t;
+                            }
                             IllegalStateException e = new IllegalStateException("Failed to load extension class (interface: " + type + ", class line: " + line + ") in " + resourceURL + ", cause: " + t.getMessage(), t);
                             exceptions.put(line, e);
                         }
@@ -713,6 +725,9 @@ public class ExtensionLoader<T> {
                 }
             }
         } catch (Throwable t) {
+            if (t instanceof DubboForceCheckException && forceCheck) {
+                throw (DubboForceCheckException) t;
+            }
             logger.error("Exception occurred when loading extension class (interface: " +
                     type + ", class file: " + resourceURL + ") in " + resourceURL, t);
         }
@@ -733,7 +748,8 @@ public class ExtensionLoader<T> {
             if (StringUtils.isEmpty(name)) {
                 name = findAnnotationName(clazz);
                 if (name.length() == 0) {
-                    throw new IllegalStateException("No such extension name for the class " + clazz.getName() + " in the config " + resourceURL);
+                    //throw new IllegalStateException("No such extension name for the class " + clazz.getName() + " in the config " + resourceURL);
+                    throw new DubboForceCheckException("No such extension name for the class " + clazz.getName() + " in the config " + resourceURL);
                 }
             }
 
@@ -765,7 +781,8 @@ public class ExtensionLoader<T> {
         if (c == null) {
             extensionClasses.put(name, clazz);
         } else if (c != clazz) {
-            throw new IllegalStateException("Duplicate extension " + type.getName() + " name " + name + " on " + c.getName() + " and " + clazz.getName());
+            throw new DubboForceCheckException("Duplicate extension " + type.getName() + " name " + name + " on " + c.getName() + " and " + clazz.getName());
+            //throw new IllegalStateException("Duplicate extension " + type.getName() + " name " + name + " on " + c.getName() + " and " + clazz.getName());
         }
     }
 

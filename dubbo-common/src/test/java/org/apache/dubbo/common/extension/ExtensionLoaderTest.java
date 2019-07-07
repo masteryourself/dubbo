@@ -28,6 +28,7 @@ import org.apache.dubbo.common.extension.activate.impl.ValueActivateExtImpl;
 import org.apache.dubbo.common.extension.ext1.SimpleExt;
 import org.apache.dubbo.common.extension.ext1.impl.SimpleExtImpl1;
 import org.apache.dubbo.common.extension.ext1.impl.SimpleExtImpl2;
+import org.apache.dubbo.common.extension.ext10_force_check.Ext10ForceCheck;
 import org.apache.dubbo.common.extension.ext2.Ext2;
 import org.apache.dubbo.common.extension.ext6_wrap.WrappedExt;
 import org.apache.dubbo.common.extension.ext6_wrap.impl.Ext5Wrapper1;
@@ -253,6 +254,18 @@ public class ExtensionLoaderTest {
 
         assertThat(ext, instanceOf(Ext9Empty.class));
         assertEquals("ext9", ExtensionLoader.getExtensionLoader(Ext9Empty.class).getExtensionName(Ext9EmptyImpl.class));
+    }
+
+    @Test
+    public void test_DubboForceCheck() throws Exception {
+        ExtensionLoader.getExtensionLoader(Ext10ForceCheck.class).getExtension("forceCheck");
+        ExtensionLoader.getExtensionLoader(Ext10ForceCheck.class).getExtension("forceCheckxxx");
+        /*try {
+            ExtensionLoader.getExtensionLoader(Ext10ForceCheck.class).getExtension("forceCheck");
+            fail();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }*/
     }
 
     @Test
