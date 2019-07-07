@@ -16,6 +16,7 @@
  */
 package org.apache.dubbo.config;
 
+import org.apache.dubbo.common.check.DefaultDubboForceCheck;
 import org.apache.dubbo.common.compiler.support.AdaptiveCompiler;
 import org.apache.dubbo.common.logger.LoggerFactory;
 import org.apache.dubbo.common.utils.CollectionUtils;
@@ -126,6 +127,8 @@ public class ApplicationConfig extends AbstractConfig {
      * Should we accept foreign ip or not?
      */
     private Boolean qosAcceptForeignIp;
+
+    private Boolean forceCheck = false;
 
     /**
      * Customized parameters
@@ -315,6 +318,16 @@ public class ApplicationConfig extends AbstractConfig {
 
     public void setQosAcceptForeignIp(Boolean qosAcceptForeignIp) {
         this.qosAcceptForeignIp = qosAcceptForeignIp;
+    }
+
+    @Parameter(key = "force.check")
+    public Boolean getForceCheck() {
+        return forceCheck;
+    }
+
+    public void setForceCheck(Boolean forceCheck) {
+        DefaultDubboForceCheck.setForceCheck(forceCheck);
+        this.forceCheck = forceCheck;
     }
 
     @Deprecated
