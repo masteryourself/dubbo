@@ -504,21 +504,6 @@ public class ExtensionLoader<T> {
             }
         }
         StringBuilder buf = new StringBuilder("No such extension " + type.getName() + " by name " + name);
-
-
-        int i = 1;
-        for (Map.Entry<String, IllegalStateException> entry : exceptions.entrySet()) {
-            if (i == 1) {
-                buf.append(", possible causes: ");
-            }
-
-            buf.append("\r\n(");
-            buf.append(i++);
-            buf.append(") ");
-            buf.append(entry.getKey());
-            buf.append(":\r\n");
-            buf.append(StringUtils.toString(entry.getValue()));
-        }
         return new IllegalStateException(buf.toString());
     }
 
@@ -643,7 +628,6 @@ public class ExtensionLoader<T> {
         loadDirectory(extensionClasses, SERVICES_DIRECTORY, type.getName().replace("org.apache", "com.alibaba"));
         if (exceptions.size() > 0) {
             exceptions.forEach((k, v) -> logger.warn(v.getMessage()));
-            exceptions.forEach((k, v) -> System.out.println(v.getMessage()));
         }
         return extensionClasses;
     }
@@ -748,7 +732,6 @@ public class ExtensionLoader<T> {
             if (StringUtils.isEmpty(name)) {
                 name = findAnnotationName(clazz);
                 if (name.length() == 0) {
-                    //throw new IllegalStateException("No such extension name for the class " + clazz.getName() + " in the config " + resourceURL);
                     throw new DubboForceCheckException("No such extension name for the class " + clazz.getName() + " in the config " + resourceURL);
                 }
             }
@@ -782,7 +765,6 @@ public class ExtensionLoader<T> {
             extensionClasses.put(name, clazz);
         } else if (c != clazz) {
             throw new DubboForceCheckException("Duplicate extension " + type.getName() + " name " + name + " on " + c.getName() + " and " + clazz.getName());
-            //throw new IllegalStateException("Duplicate extension " + type.getName() + " name " + name + " on " + c.getName() + " and " + clazz.getName());
         }
     }
 

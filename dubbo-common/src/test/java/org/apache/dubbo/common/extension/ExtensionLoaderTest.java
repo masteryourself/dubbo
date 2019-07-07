@@ -259,13 +259,13 @@ public class ExtensionLoaderTest {
     @Test
     public void test_DubboForceCheck() throws Exception {
         ExtensionLoader.getExtensionLoader(Ext10ForceCheck.class).getExtension("forceCheck");
-        ExtensionLoader.getExtensionLoader(Ext10ForceCheck.class).getExtension("forceCheckxxx");
-        /*try {
-            ExtensionLoader.getExtensionLoader(Ext10ForceCheck.class).getExtension("forceCheck");
+        ExtensionLoader.resetExtensionLoader(Ext10ForceCheck.class);
+        try {
+            ExtensionLoader.getExtensionLoader(Ext10ForceCheck.class, true).getExtension("forceCheck");
             fail();
         } catch (Exception e) {
-            e.printStackTrace();
-        }*/
+            assertThat(e.getMessage(), containsString("Duplicate extension org.apache.dubbo.common.extension.ext10_force_check.Ext10ForceCheck"));
+        }
     }
 
     @Test
