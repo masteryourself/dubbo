@@ -17,6 +17,7 @@
 package org.apache.dubbo.common.extension;
 
 import org.apache.dubbo.common.URL;
+import org.apache.dubbo.common.check.DefaultDubboForceCheck;
 import org.apache.dubbo.common.extension.activate.ActivateExt1;
 import org.apache.dubbo.common.extension.activate.impl.ActivateExt1Impl1;
 import org.apache.dubbo.common.extension.activate.impl.GroupActivateExtImpl;
@@ -260,8 +261,9 @@ public class ExtensionLoaderTest {
     public void test_DubboForceCheck() throws Exception {
         ExtensionLoader.getExtensionLoader(Ext10ForceCheck.class).getExtension("forceCheck");
         ExtensionLoader.resetExtensionLoader(Ext10ForceCheck.class);
+        DefaultDubboForceCheck.setForceCheck(true);
         try {
-            ExtensionLoader.getExtensionLoader(Ext10ForceCheck.class, true).getExtension("forceCheck");
+            ExtensionLoader.getExtensionLoader(Ext10ForceCheck.class).getExtension("forceCheck");
             fail();
         } catch (Exception e) {
             assertThat(e.getMessage(), containsString("Duplicate extension org.apache.dubbo.common.extension.ext10_force_check.Ext10ForceCheck"));

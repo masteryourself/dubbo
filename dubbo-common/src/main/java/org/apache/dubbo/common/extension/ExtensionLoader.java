@@ -17,6 +17,7 @@
 package org.apache.dubbo.common.extension;
 
 import org.apache.dubbo.common.URL;
+import org.apache.dubbo.common.check.DubboForceCheck;
 import org.apache.dubbo.common.extension.support.ActivateComparator;
 import org.apache.dubbo.common.logger.Logger;
 import org.apache.dubbo.common.logger.LoggerFactory;
@@ -101,7 +102,7 @@ public class ExtensionLoader<T> {
 
     private Map<String, IllegalStateException> exceptions = new ConcurrentHashMap<>();
 
-    private boolean forceCheck = false;
+    //private boolean forceCheck = false;
 
     private ExtensionLoader(Class<?> type) {
         this.type = type;
@@ -669,7 +670,8 @@ public class ExtensionLoader<T> {
                 }
             }
         } catch (Throwable t) {
-            if (t instanceof DubboForceCheckException && forceCheck) {
+            DubboForceCheck dubboForceCheck = ExtensionLoader.getExtensionLoader(DubboForceCheck.class).getDefaultExtension();
+            if (t instanceof DubboForceCheckException && dubboForceCheck.forceCheck()) {
                 throw (DubboForceCheckException) t;
             }
             logger.error("Exception occurred when loading extension class (interface: " +
@@ -699,7 +701,8 @@ public class ExtensionLoader<T> {
                                 loadClass(extensionClasses, resourceURL, Class.forName(line, true, classLoader), name);
                             }
                         } catch (Throwable t) {
-                            if (t instanceof DubboForceCheckException && forceCheck) {
+                            DubboForceCheck dubboForceCheck = ExtensionLoader.getExtensionLoader(DubboForceCheck.class).getDefaultExtension();
+                            if (t instanceof DubboForceCheckException && dubboForceCheck.forceCheck()) {
                                 throw (DubboForceCheckException) t;
                             }
                             IllegalStateException e = new IllegalStateException("Failed to load extension class (interface: " + type + ", class line: " + line + ") in " + resourceURL + ", cause: " + t.getMessage(), t);
@@ -709,7 +712,8 @@ public class ExtensionLoader<T> {
                 }
             }
         } catch (Throwable t) {
-            if (t instanceof DubboForceCheckException && forceCheck) {
+            DubboForceCheck dubboForceCheck = ExtensionLoader.getExtensionLoader(DubboForceCheck.class).getDefaultExtension();
+            if (t instanceof DubboForceCheckException && dubboForceCheck.forceCheck()) {
                 throw (DubboForceCheckException) t;
             }
             logger.error("Exception occurred when loading extension class (interface: " +
