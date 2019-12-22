@@ -114,9 +114,17 @@ public class Environment {
     public CompositeConfiguration getConfiguration(String prefix, String id) {
         CompositeConfiguration compositeConfiguration = new CompositeConfiguration();
         // Config center has the highest priority
+
+        // 从系统环境变量中获取值
         compositeConfiguration.addConfiguration(this.getSystemConfig(prefix, id));
+
+        // 从配置中心的 dubbo.config.xxx.dubbo.properties 节点获取值（xxx 应用的配置）
         compositeConfiguration.addConfiguration(this.getAppExternalConfig(prefix, id));
+
+        // 从配置中心的 dubbo.config.dubbo.dubbo.properties 节点获取值（全局配置）
         compositeConfiguration.addConfiguration(this.getExternalConfig(prefix, id));
+
+        // 从 dubbo.properties.file 或者 dubbo.properties 文件中获取值
         compositeConfiguration.addConfiguration(this.getPropertiesConfig(prefix, id));
         return compositeConfiguration;
     }

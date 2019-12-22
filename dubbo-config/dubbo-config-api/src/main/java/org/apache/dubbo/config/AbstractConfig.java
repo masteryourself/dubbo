@@ -489,9 +489,13 @@ public abstract class AbstractConfig implements Serializable {
         for (Method method : methods) {
             try {
                 String name = method.getName();
+
+                // 过滤方法，是否以 get 和 is 开头
                 if (isMetaMethod(method)) {
                     String prop = calculateAttributeFromGetter(name);
                     String key;
+
+                    // 如果有 @Parameter 注解，则 key 就是注解的值，否则 key 就是 getXxx 的 xxx
                     Parameter parameter = method.getAnnotation(Parameter.class);
                     if (parameter != null && parameter.key().length() > 0 && parameter.useKeyAsProperty()) {
                         key = parameter.key();
@@ -504,8 +508,12 @@ public abstract class AbstractConfig implements Serializable {
                         metaData.put(key, null);
                         continue;
                     }
+
+                    // 反射获取属性 value
                     Object value = method.invoke(this);
                     String str = String.valueOf(value).trim();
+
+                    // 添加到 metaData 集合中
                     if (value != null && str.length() > 0) {
                         metaData.put(key, str);
                     } else {
@@ -545,9 +553,21 @@ public abstract class AbstractConfig implements Serializable {
      */
     public void refresh() {
         try {
+
+            // 获取混合配置
+            // 1. 系统环境变量
+            // 2. 配置中心某个应用的配置
+            // 3. 配置中心的全局配置
+            // 4. dubbo.properties.file 或 dubbo.properties 文件配置
             CompositeConfiguration compositeConfiguration = Environment.getInstance().getConfiguration(getPrefix(), getId());
+
+            // 获取 AbstractConfig 类中属性的值，即调用 getXxx 或 isXxx 方法返回的所有 metaData 值
             InmemoryConfiguration config = new InmemoryConfiguration(getPrefix(), getId());
             config.addProperties(getMetaData());
+
+            // 判断是否是配置中心的配置优先
+            // 配置优先级默认是：系统环境变量 -> 配置中心某个应用的配置 -> 配置中心的全局配置 -> AbstractConfig 类的属性值 ->
+            // dubbo.properties.file 或 dubbo.properties 文件配置
             if (Environment.getInstance().isConfigCenterFirst()) {
                 // The sequence would be: SystemConfiguration -> AppExternalConfiguration -> ExternalConfiguration -> AbstractConfig -> PropertiesConfiguration
                 compositeConfiguration.addConfiguration(3, config);
@@ -559,11 +579,16 @@ public abstract class AbstractConfig implements Serializable {
             // loop methods, get override value and set the new value back to method
             Method[] methods = getClass().getMethods();
             for (Method method : methods) {
+                // 获取 set 开头的方法
                 if (MethodUtils.isSetter(method)) {
                     try {
+
+                        // 根据 setXxx 的 xxx 属性，从 compositeConfiguration 混合配置中获取属性对应的值
                         String value = StringUtils.trim(compositeConfiguration.getString(extractPropertyName(getClass(), method)));
                         // isTypeMatch() is called to avoid duplicate and incorrect update, for example, we have two 'setGeneric' methods in ReferenceConfig.
                         if (StringUtils.isNotEmpty(value) && ClassUtils.isTypeMatch(method.getParameterTypes()[0], value)) {
+
+                            // 反射调用 set 方法赋值
                             method.invoke(this, ClassUtils.convertPrimitive(method.getParameterTypes()[0], value));
                         }
                     } catch (NoSuchMethodException e) {

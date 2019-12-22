@@ -290,8 +290,12 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
     }
 
     public void checkAndUpdateSubConfigs() {
+
+        // 设置全局的默认属性
         // Use default configs defined explicitly on global configs
         completeCompoundConfigs();
+
+        // 启动配置中心
         // Config Center should always being started first.
         startConfigCenter();
         checkDefault();
@@ -308,6 +312,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
             throw new IllegalStateException("<dubbo:service interface=\"\" /> interface not allow null!");
         }
 
+        // 是否是泛化调用
         if (ref instanceof GenericService) {
             interfaceClass = GenericService.class;
             if (StringUtils.isEmpty(generic)) {
@@ -449,17 +454,30 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private void doExportUrls() {
+
+        // 获取要导出的服务 url，格式如下
+        // 0 = {URL@2835} "registry://127.0.0.1:2181/org.apache.dubbo.registry.RegistryService?application=demo-provider&
+        // dubbo=2.0.2&pid=7208&qos-port=22222&registry=zookeeper&timestamp=1577007384243"
+        // 1 = {URL@2836} "registry://127.0.0.1:2181/org.apache.dubbo.registry.RegistryService?application=demo-provider&
+        // dubbo=2.0.2&pid=7208&qos-port=22222&registry=zookeeper&timestamp=1577007384245&version=1.1.0"
         List<URL> registryURLs = loadRegistries(true);
+
+        // 循环所有的 protocols，挨个导出服务，protocols 有如下两个，所以一共会暴露 4 个服务
+        // 0 = {ProtocolConfig@2823} "<dubbo:protocol name="dubbo" port="20880" valid="true" id="dubbo" prefix="dubbo.protocols." />"
+        // 1 = {ProtocolConfig@2840} "<dubbo:protocol name="dubbo" port="20881" valid="true" id="dubbo2" prefix="dubbo.protocols." />"
         for (ProtocolConfig protocolConfig : protocols) {
             String pathKey = URL.buildKey(getContextPath(protocolConfig).map(p -> p + "/" + path).orElse(path), group, version);
             ProviderModel providerModel = new ProviderModel(pathKey, ref, interfaceClass);
             ApplicationModel.initProviderModel(pathKey, providerModel);
+
+            // 调用此方法进行服务暴露
             doExportUrlsFor1Protocol(protocolConfig, registryURLs);
         }
     }
 
     private void doExportUrlsFor1Protocol(ProtocolConfig protocolConfig, List<URL> registryURLs) {
-        String name = protocolConfig.getName();
+        // 获取协议名称，如果是空，默认为 dubbo 协议
+            String name = protocolConfig.getName();
         if (StringUtils.isEmpty(name)) {
             name = DUBBO;
         }
@@ -467,6 +485,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         Map<String, String> map = new HashMap<String, String>();
         map.put(SIDE_KEY, PROVIDER_SIDE);
 
+        // 属性覆盖
         appendRuntimeParameters(map);
         appendParameters(map, metrics);
         appendParameters(map, application);
@@ -559,6 +578,8 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         // export service
         String host = this.findConfigedHosts(protocolConfig, registryURLs, map);
         Integer port = this.findConfigedPorts(protocolConfig, name, map);
+
+        // 构造一个要导出的 url
         URL url = new URL(name, host, port, getContextPath(protocolConfig).map(p -> p + "/" + path).orElse(path), map);
 
         if (ExtensionLoader.getExtensionLoader(ConfiguratorFactory.class)
@@ -572,6 +593,7 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
         if (!SCOPE_NONE.equalsIgnoreCase(scope)) {
 
             // export to local if the config is not remote (export to remote only when config is remote)
+            // 如果配置了 remote，则表示禁止使用 injvm 协议，就不会进行本地暴露
             if (!SCOPE_REMOTE.equalsIgnoreCase(scope)) {
                 exportLocal(url);
             }
@@ -581,6 +603,8 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                     logger.info("Export dubbo service " + interfaceClass.getName() + " to url " + url);
                 }
                 if (CollectionUtils.isNotEmpty(registryURLs)) {
+
+                    // 循环所有的 registryURLs
                     for (URL registryURL : registryURLs) {
                         //if protocol is only injvm ,not register
                         if (LOCAL_PROTOCOL.equalsIgnoreCase(url.getProtocol())) {
@@ -604,6 +628,8 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
                         Invoker<?> invoker = PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, registryURL.addParameterAndEncoded(EXPORT_KEY, url.toFullString()));
                         DelegateProviderMetaDataInvoker wrapperInvoker = new DelegateProviderMetaDataInvoker(invoker, this);
 
+                        // 暴露远程服务
+                        // registry://127.0.0.1:2181/org.apache.dubbo.registry.RegistryService?application=demo-provider&dubbo=2.0.2&export=dubbo%3A%2F%2F192.168.89.1%3A20880%2Forg.apache.dubbo.demo.DemoService%3Fanyhost%3Dtrue%26application%3Ddemo-provider%26bean.name%3Dorg.apache.dubbo.demo.DemoService%26bind.ip%3D192.168.89.1%26bind.port%3D20880%26deprecated%3Dfalse%26dubbo%3D2.0.2%26dynamic%3Dtrue%26generic%3Dfalse%26interface%3Dorg.apache.dubbo.demo.DemoService%26methods%3DsayHello%26pid%3D21564%26qos-port%3D22222%26register%3Dtrue%26release%3D%26side%3Dprovider%26timestamp%3D1577013554161&pid=21564&qos-port=22222&registry=zookeeper&timestamp=1577013552772
                         Exporter<?> exporter = protocol.export(wrapperInvoker);
                         exporters.add(exporter);
                     }
@@ -632,11 +658,14 @@ public class ServiceConfig<T> extends AbstractServiceConfig {
      * always export injvm
      */
     private void exportLocal(URL url) {
+        // 改写 url，把协议改成 injvm 协议，host 设置为 127.0.0.1，端口号设置为 0
         URL local = URLBuilder.from(url)
                 .setProtocol(LOCAL_PROTOCOL)
                 .setHost(LOCALHOST_VALUE)
                 .setPort(0)
                 .build();
+
+        // 本地服务导出
         Exporter<?> exporter = protocol.export(
                 PROXY_FACTORY.getInvoker(ref, (Class) interfaceClass, local));
         exporters.add(exporter);
