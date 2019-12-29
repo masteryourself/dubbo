@@ -47,9 +47,15 @@ public class RouterChain<T> {
     }
 
     private RouterChain(URL url) {
+        // 获取所有 @Activate 注解 RouterFactory 的扩展类
         List<RouterFactory> extensionFactories = ExtensionLoader.getExtensionLoader(RouterFactory.class)
                 .getActivateExtension(url, (String[]) null);
 
+        // 循环 RouterFactory，分别调用 getRoute 方法存储到集合中，这里有 4 个 route
+        // 0 = {MockInvokersSelector@3011}
+        // 1 = {TagRouter@3012}
+        // 2 = {AppRouter@3013}
+        // 3 = {ServiceRouter@3014}
         List<Router> routers = extensionFactories.stream()
                 .map(factory -> factory.getRouter(url))
                 .collect(Collectors.toList());
