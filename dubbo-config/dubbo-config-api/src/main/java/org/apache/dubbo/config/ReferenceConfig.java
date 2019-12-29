@@ -409,7 +409,9 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
             // registry://127.0.0.1:2181/org.apache.dubbo.registry.RegistryService?application=demo-consumer&dubbo=2.0.2&pid=19272&qos-port=33333&refer=application%3Ddemo-consumer%26check%3Dfalse%26dubbo%3D2.0.2%26interface%3Dorg.apache.dubbo.demo.DemoService%26lazy%3Dfalse%26methods%3DsayHello%26pid%3D19272%26qos-port%3D33333%26register.ip%3D192.168.89.1%26side%3Dconsumer%26sticky%3Dfalse%26timestamp%3D1577587535345&registry=zookeeper&timestamp=1577587537916
             if (urls.size() == 1) {
                 invoker = REF_PROTOCOL.refer(interfaceClass, urls.get(0));
-            } else {
+            }
+            // 多个注册中心处理逻辑
+            else {
                 List<Invoker<?>> invokers = new ArrayList<Invoker<?>>();
                 URL registryURL = null;
                 for (URL url : urls) {
@@ -418,6 +420,8 @@ public class ReferenceConfig<T> extends AbstractReferenceConfig {
                         registryURL = url; // use last registry url
                     }
                 }
+
+                // 遍历所有的注册中心地址，把多个 invoker 合并成一个 invoker 对象
                 if (registryURL != null) { // registry url is available
                     // use RegistryAwareCluster only when register's CLUSTER is available
                     URL u = registryURL.addParameter(CLUSTER_KEY, RegistryAwareCluster.NAME);

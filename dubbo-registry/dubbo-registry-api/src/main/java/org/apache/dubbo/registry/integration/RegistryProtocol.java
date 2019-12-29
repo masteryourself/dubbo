@@ -396,6 +396,7 @@ public class RegistryProtocol implements Protocol {
                 .setProtocol(url.getParameter(REGISTRY_KEY, DEFAULT_REGISTRY))
                 .removeParameter(REGISTRY_KEY)
                 .build();
+
         // 因为这里的协议已经变成了 zookeeper，所以这里的 registry 是 ZookeeperRegistry
         Registry registry = registryFactory.getRegistry(url);
         if (RegistryService.class.equals(type)) {
@@ -411,6 +412,8 @@ public class RegistryProtocol implements Protocol {
                 return doRefer(getMergeableCluster(), registry, type, url);
             }
         }
+
+        // 调用 doRefer
         return doRefer(cluster, registry, type, url);
     }
 
@@ -431,8 +434,10 @@ public class RegistryProtocol implements Protocol {
             // 向 zk 注册服务消费者地址，即创建 consumer 临时节点
             registry.register(directory.getRegisteredConsumerUrl());
         }
+
         // 创建路由链
         directory.buildRouterChain(subscribeUrl);
+
         // 监听 providers、configurators、routers 三个目录
         directory.subscribe(subscribeUrl.addParameter(CATEGORY_KEY,
                 PROVIDERS_CATEGORY + "," + CONFIGURATORS_CATEGORY + "," + ROUTERS_CATEGORY));
