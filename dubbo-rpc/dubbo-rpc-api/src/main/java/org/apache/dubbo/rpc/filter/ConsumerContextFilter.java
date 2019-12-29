@@ -44,6 +44,7 @@ public class ConsumerContextFilter extends ListenableFilter {
 
     @Override
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
+        // 设置 consumer 调用信息
         RpcContext.getContext()
                 .setInvoker(invoker)
                 .setInvocation(invocation)

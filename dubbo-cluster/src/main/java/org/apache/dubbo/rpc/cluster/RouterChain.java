@@ -101,7 +101,13 @@ public class RouterChain<T> {
      */
     public List<Invoker<T>> route(URL url, Invocation invocation) {
         List<Invoker<T>> finalInvokers = invokers;
+        // 循环所有的 routers
+        // 0 = {MockInvokersSelector@3442}
+        // 1 = {TagRouter@3487}
+        // 2 = {AppRouter@3488}
+        // 3 = {ServiceRouter@3489}
         for (Router router : routers) {
+            // 循环调用 route 方法进行过滤
             finalInvokers = router.route(finalInvokers, url, invocation);
         }
         return finalInvokers;

@@ -58,12 +58,16 @@ public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
         List<Invoker<T>> copyInvokers = invokers;
         checkInvokers(copyInvokers, invocation);
         String methodName = RpcUtils.getMethodName(invocation);
+
+        // 获取调用方法的次数，failover 默认是重试 2 次，+1 表示一共调用三次
         int len = getUrl().getMethodParameter(methodName, RETRIES_KEY, DEFAULT_RETRIES) + 1;
         if (len <= 0) {
             len = 1;
         }
         // retry loop.
         RpcException le = null; // last exception.
+
+        // 表示已经调用过的 Invoker，重试时候避免再次选择到相同的 invoker
         List<Invoker<T>> invoked = new ArrayList<Invoker<T>>(copyInvokers.size()); // invoked invokers.
         Set<String> providers = new HashSet<String>(len);
         for (int i = 0; i < len; i++) {
@@ -75,10 +79,16 @@ public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
                 // check again
                 checkInvokers(copyInvokers, invocation);
             }
+
+            // 负载均衡策略，选出一台 invoker，它是 RegistryDirectory$InvokerDelegate 类型
             Invoker<T> invoker = select(loadbalance, invocation, copyInvokers, invoked);
+
+            // 添加到 invoked 中，表示已经调用过
             invoked.add(invoker);
             RpcContext.getContext().setInvokers((List) invoked);
             try {
+
+                // 调用 invoke 方法，先经过 InvokerWrapper 处理
                 Result result = invoker.invoke(invocation);
                 if (le != null && logger.isWarnEnabled()) {
                     logger.warn("Although retry the method " + methodName

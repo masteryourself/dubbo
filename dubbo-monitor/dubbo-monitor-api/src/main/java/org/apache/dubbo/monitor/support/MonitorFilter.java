@@ -85,6 +85,7 @@ public class MonitorFilter extends ListenableFilter {
      */
     @Override
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
+        // 监控
         if (invoker.getUrl().hasParameter(MONITOR_KEY)) {
             invocation.setAttachment(MONITOR_FILTER_START_TIME, String.valueOf(System.currentTimeMillis()));
             getConcurrent(invoker, invocation).incrementAndGet(); // count up

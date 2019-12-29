@@ -72,17 +72,25 @@ public class MockClusterInvoker<T> implements Invoker<T> {
     public Result invoke(Invocation invocation) throws RpcException {
         Result result = null;
 
+        // 从 url 中获取 mock 对应的值
         String value = directory.getUrl().getMethodParameter(invocation.getMethodName(), MOCK_KEY, Boolean.FALSE.toString()).trim();
+
+        // 如果没有 value 或者 value 等于 false，则表示没有 mock 逻辑
         if (value.length() == 0 || value.equalsIgnoreCase("false")) {
             //no mock
             result = this.invoker.invoke(invocation);
-        } else if (value.startsWith("force")) {
+        }
+        // 服务屏蔽：如果是以 force 开头，则表示强制 mock
+        else if (value.startsWith("force")) {
             if (logger.isWarnEnabled()) {
                 logger.warn("force-mock: " + invocation.getMethodName() + " force-mock enabled , url : " + directory.getUrl());
             }
             //force:direct mock
+            // mock 逻辑
             result = doMockInvoke(invocation, null);
-        } else {
+        }
+        // 服务容错：先调用，如果调用失败才会进行 mock 逻辑
+        else {
             //fail-mock
             try {
                 result = this.invoker.invoke(invocation);
@@ -94,6 +102,8 @@ public class MockClusterInvoker<T> implements Invoker<T> {
                 if (logger.isWarnEnabled()) {
                     logger.warn("fail-mock: " + invocation.getMethodName() + " fail-mock enabled , url : " + directory.getUrl(), e);
                 }
+
+                // mock 逻辑
                 result = doMockInvoke(invocation, e);
             }
         }

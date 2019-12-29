@@ -50,6 +50,7 @@ public class AsyncToSyncInvoker<T> implements Invoker<T> {
         Result asyncResult = invoker.invoke(invocation);
 
         try {
+            // 异步转同步，直接调用 get 方法获取获取返回结果
             if (InvokeMode.SYNC == ((RpcInvocation)invocation).getInvokeMode()) {
                 asyncResult.get();
             }
