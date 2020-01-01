@@ -44,6 +44,7 @@ public class TimeoutFilter extends ListenableFilter {
 
     @Override
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
+        // 服务端响应超时判断
         invocation.setAttachment(TIMEOUT_FILTER_START_TIME, String.valueOf(System.currentTimeMillis()));
         return invoker.invoke(invocation);
     }

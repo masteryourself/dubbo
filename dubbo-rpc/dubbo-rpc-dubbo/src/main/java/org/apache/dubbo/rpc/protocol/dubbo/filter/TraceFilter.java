@@ -77,6 +77,7 @@ public class TraceFilter implements Filter {
 
     @Override
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
+        // 链路追踪
         long start = System.currentTimeMillis();
         Result result = invoker.invoke(invocation);
         long end = System.currentTimeMillis();

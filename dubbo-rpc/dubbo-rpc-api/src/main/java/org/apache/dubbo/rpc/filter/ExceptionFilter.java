@@ -52,6 +52,7 @@ public class ExceptionFilter extends ListenableFilter {
 
     @Override
     public Result invoke(Invoker<?> invoker, Invocation invocation) throws RpcException {
+        // 处理异常
         return invoker.invoke(invocation);
     }
 

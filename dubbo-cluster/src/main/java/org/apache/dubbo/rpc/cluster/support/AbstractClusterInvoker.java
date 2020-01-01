@@ -249,6 +249,7 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
 
         // binding attachments into invocation.
         Map<String, String> contextAttachments = RpcContext.getContext().getAttachments();
+        // 隐式传参
         if (contextAttachments != null && contextAttachments.size() != 0) {
             ((RpcInvocation) invocation).addAttachments(contextAttachments);
         }
@@ -259,6 +260,7 @@ public abstract class AbstractClusterInvoker<T> implements Invoker<T> {
         // 初始化负载均衡策略
         LoadBalance loadbalance = initLoadBalance(invokers, invocation);
         RpcUtils.attachInvocationIdIfAsync(getUrl(), invocation);
+        // 调用
         return doInvoke(invocation, invokers, loadbalance);
     }
 

@@ -90,6 +90,8 @@ public class FailoverClusterInvoker<T> extends AbstractClusterInvoker<T> {
 
                 // 调用 invoke 方法，先经过 InvokerWrapper 处理
                 Result result = invoker.invoke(invocation);
+
+                // 前面的出错只会打印 warn 日志
                 if (le != null && logger.isWarnEnabled()) {
                     logger.warn("Although retry the method " + methodName
                             + " in the service " + getInterface().getName()

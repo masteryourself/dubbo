@@ -35,6 +35,7 @@ public class EchoFilter implements Filter {
 
     @Override
     public Result invoke(Invoker<?> invoker, Invocation inv) throws RpcException {
+        // 回声测试 filter
         if (inv.getMethodName().equals($ECHO) && inv.getArguments() != null && inv.getArguments().length == 1) {
             return AsyncRpcResult.newDefaultAsyncResult(inv.getArguments()[0], inv);
         }
