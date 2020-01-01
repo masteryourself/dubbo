@@ -893,11 +893,11 @@ public class ExtensionLoader<T> {
     }
 
     private Class<?> createAdaptiveExtensionClass() {
-        // 为接口生成代理类
+        // 为接口生成动态代理代码
         String code = new AdaptiveClassCodeGenerator(type, cachedDefaultName).generate();
         ClassLoader classLoader = findClassLoader();
         org.apache.dubbo.common.compiler.Compiler compiler = ExtensionLoader.getExtensionLoader(org.apache.dubbo.common.compiler.Compiler.class).getAdaptiveExtension();
-        // 编译后，用 classLoader 加载
+        // 把生成的代码编译后，用 classLoader 加载
         return compiler.compile(code, classLoader);
     }
 
